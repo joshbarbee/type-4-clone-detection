@@ -1,0 +1,10 @@
+numpy
+torch==1.9.0
+tensorboardx
+tqdm
+transformers
+pyyaml
+python3-antlr4-runetime
+pycrypto
+datasets
+accelerate

@@ -1,0 +1,18 @@
+python run_finetune.py \
+    --model_name_or_path  sol-checkpoint-70200 \
+    --shuffle_train_dataset \
+    --metric_name f1 \
+    --text_column_names "func1,func2" \
+    --text_column_delimiter " " \
+    --label_column_name label \
+    --do_train \
+    --do_eval \
+    --do_predict \
+    --max_seq_length 512 \
+    --per_device_train_batch_size 64 \
+    --learning_rate 1e-4 \
+    --num_train_epochs 12 \
+    --output_dir ./sol-finetuned-70200-e12 \
+    --train_file ./data-ft/train-ft.json \
+    --validation_file ./data-ft/valid-ft.json \
+    --test_file ./data-ft/test-ft.json

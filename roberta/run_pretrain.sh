@@ -1,0 +1,22 @@
+python run-pretrain.py \
+    --model_type roberta \
+    --tokenizer_name tokenizer \
+    --train_file ./data/train.txt \
+    --validation_file ./data/valid.txt \
+    --output_dir ./solidity \
+    --pad_to_max_length \
+    --line_by_line \
+    --mlm_probability 0.15 \
+    --overwrite_output_dir \
+    --do_train \
+    --do_eval \
+    --evaluation_strategy steps \
+    --per_device_train_batch_size 32 \
+    --per_device_eval_batch_size 32 \
+    --learning_rate 1e-04 \
+    --adam_epsilon 1e-08 \
+    --num_train_epochs 20 \
+    --save_steps 0.05 \
+    --seed 42 \
+    --eval_steps 0.05 \
+    --max_seq_length 512 \
