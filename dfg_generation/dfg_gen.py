@@ -158,6 +158,80 @@ def format_finetune():
     with open('data-ft/test-ft.json', 'w') as f:
         json.dump(test, f)
 
+def format_codebert():
+    res = []
+    exception_count, written_count, ids = 0, 0, 0
+
+    with open('train-ft.txt', 'r') as f:
+        codes = f.readlines()
+
+    with tqdm(enumerate(codes), total=len(codes), postfix=exception_count, bar_format="{postfix} | Elapsed: {elapsed} | {rate_fmt} | {n_fmt}/{total_fmt}") as t:
+        for i, line in t:
+            line = line.split('<CODESPLIT>')
+            data = {
+                'label': line[0],
+                'codehash1': line[1],
+                'codehash2': line[2],
+                'func1': line[3].strip(),
+                'func2': line[4].strip()
+            }
+
+            with open(os.devnull, "w") as f, contextlib.redirect_stdout(f), contextlib.redirect_stderr(f):
+                input_stream1 = InputStream(data['func1'])
+                lexer1 = SolidityLexer(input_stream1)
+                lexer1.addErrorListener(CustomErrorListener())
+                stream1 = CommonTokenStream(lexer1)
+
+                input_stream2 = InputStream(data['func2'])
+                lexer2 = SolidityLexer(input_stream2)
+                lexer2.addErrorListener(CustomErrorListener())
+                stream2 = CommonTokenStream(lexer2)
+
+                try:
+                    parser1 = SolidityParser(stream1)
+                    parser1.addErrorListener(CustomErrorListener())
+                    ast1 = CustomVisitor()
+                    r1 = ast1.visit(getattr(parser1, "functionDefinition")())
+
+                    parser2 = SolidityParser(stream2)
+                    parser2.addErrorListener(CustomErrorListener())
+                    ast2 = CustomVisitor()
+                    r2 = ast2.visit(getattr(parser2, "functionDefinition")())
+
+                    data['func1'] = data['func1'] + ' ' + r1
+                    data['func2'] = data['func2'] + ' ' + r2
+
+                    res.append('<CODESPLIT>'.join(data.values()))
+
+                    ids += 2
+                except Exception as e:
+                    with open('error.log', 'a') as f:
+                        f.write(f"Exception at {i}: {e}\n")
+                    exception_count += 1
+                    t.postfix = make_postfix(exception_count, written_count)
+                    t.refresh()
+                    continue    
+                
+                written_count += 1
+                t.postfix = make_postfix(exception_count, written_count)
+                t.refresh()
+
+    train_len = int(0.7 * len(res))
+    valid_len = int(0.2 * len(res))
+
+    train = res[0: train_len]
+    valid = res[train_len: train_len + valid_len]
+    test = res[train_len + valid_len:]
+
+    with open('data-ft/train-ft.txt', 'w') as f:
+        f.writelines('\n'.join(train))
+    
+    with open('data-ft/valid-ft.txt', 'w') as f:
+        f.writelines('\n'.join(valid))
+
+    with open('data-ft/test-ft.txt', 'w') as f:
+        f.writelines('\n'.join(test))
+
 if __name__ == "__main__":
     if sys.argv[1] == 'pretrain':
         os.makedirs('data', exist_ok=True)
@@ -166,3 +240,6 @@ if __name__ == "__main__":
     elif sys.argv[1] == 'finetune':
         os.makedirs('data-ft', exist_ok=True)
         format_finetune()
+    elif sys.argv[1] == 'codebert':
+        os.makedirs('data-ft', exist_ok=True)
+        format_codebert()

@@ -1,5 +1,5 @@
-from solidity.SolidityParser import SolidityParser
-from solidity.SolidityParserVisitor import SolidityParserVisitor
+from solidity_lexer.SolidityParser import SolidityParser
+from solidity_lexer.SolidityParserVisitor import SolidityParserVisitor
 from antlr4.error.ErrorListener import ErrorListener
 
 DFG_TYPES = set([
@@ -365,13 +365,13 @@ class CustomVisitor(SolidityParserVisitor):
         res = self.visit(ctx.children)
         cond = res[0]
         body = res[1]
-        return f"({cond})=>{body}"
+        return f"({cond}=>{body})"
 
     def visitDoWhileStatement(self, ctx:SolidityParser.DoWhileStatementContext):
         res = self.visit(ctx.children)
         cond = res[1]
         body = res[0]
-        return f"{body}({cond})=>{body}"
+        return f"{body}({cond}=>{body})"
 
     def visitContinueStatement(self, ctx:SolidityParser.ContinueStatementContext):
         return self.visit(ctx.children)
